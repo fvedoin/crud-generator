@@ -72,7 +72,7 @@ public class Metadata {
             String corpo = "";
             String parametros = "";
             String parametroJc = "";
-            File file = new File ("C:/www/crud-generator/src/" + actualTable.toString() + "/" + actualTable.toString() + ".java");
+            File file = new File(System.getProperty("user.dir") + "/src/" + actualTable.toString() + "/" + actualTable.toString() + ".java");
             file.getParentFile().mkdirs();
             PrintWriter writer = new PrintWriter(file, "UTF-8");
             writer.println("package " + actualTable.toString() + ";\n");
@@ -112,7 +112,7 @@ public class Metadata {
         ResultSet rs = metadata.getColumns("trabalho01", null, actualTable.toString(), null);
         System.out.println("Criando exemplo para a tabela " + actualTable.toString().toUpperCase());
         try {
-            File file = new File ("C:/www/crud-generator/src/" + actualTable.toString() + "/" + actualTable.toString() + "Exemplo.java");
+            File file = new File(System.getProperty("user.dir") + "/src/" + actualTable.toString() + "/" + actualTable.toString() + "Exemplo.java");
             PrintWriter writer = new PrintWriter(file, "UTF-8");
             writer.println("package " + actualTable.toString() + ";\n");
             writer.println("public class " + actualTable.toString() + "Exemplo {\n" +
@@ -125,14 +125,17 @@ public class Metadata {
             String[] campos = parametros.split(",");
             for (Integer i = 0; i < campos.length; i++) {
                 imprime += "\"- \" + temp.get" + campos[i] + "()";
+                if (i != campos.length - 1) {
+                    imprime += "+";
+                }
             }
             imprime += ");";
             writer.println(imprime);
             writer.println("}");
             //INSERINDO REGISTROS
             writer.println("System.out.println(\"Inserindo dados na tabela " + actualTable.toString() + "\");\n" +
-                    "c1 = new " + actualTable.toString() + "()\n" +
-                    "cs.insere" + actualTable + "();");
+                    actualTable.toString() + " c1 = new " + actualTable.toString() + "();\n" +
+                    "cs.insere" + actualTable + "(c1);");
             writer.println("System.out.println(\"Listando todos os dados da tabela " + actualTable.toString() + "\");\n" +
                     "for(" + actualTable.toString() + " temp : cs.busca" + actualTable + "()){\n" +
                     imprime + "\n" +
@@ -148,7 +151,7 @@ public class Metadata {
             //APAGANDO REGISTROS
             writer.println("System.out.println(\"Apagando todos os registros da tabela " + actualTable + "\");\n" +
                     "for(" + actualTable.toString() + " temp : cs.busca" + actualTable + "()){\n" +
-                    "cs.remove" + actualTable.toString() + "(" + campos[0] + ",temp.get" + campos[0] + "());");
+                    "cs.remove" + actualTable.toString() + "(temp.get" + campos[0] + "());");
             writer.println("}");
             writer.println("System.out.println(\"Listando todos os dados da tabela " + actualTable.toString() + "\");\n" +
                     "for(" + actualTable.toString() + " temp : cs.busca" + actualTable + "()){\n" +
@@ -174,7 +177,7 @@ public class Metadata {
         parametros.replaceAll(" ", "");
         String[] campos = parametros.split(",");
         while (rs.next()) {
-             j = i + 1;
+            j = i + 1;
             settingValues += "pmst.setString(" + j + ",objeto.get" + campos[i] + "());\n";
             i++;
         }
@@ -322,7 +325,7 @@ public class Metadata {
         ResultSet rs = metadata.getColumns("trabalho01", null, actualTable.toString(), null);
         System.out.println("Criando Dao para a tabela " + actualTable.toString().toUpperCase());
         try {
-            File file = new File ("C:/www/crud-generator/src/" + actualTable.toString() + "/" + actualTable.toString() + "Dao.java");
+            File file = new File(System.getProperty("user.dir") + "/src/" + actualTable.toString() + "/" + actualTable.toString() + "Dao.java");
             PrintWriter writer = new PrintWriter(file, "UTF-8");
             writer.println("package " + actualTable.toString() + ";\n");
             writer.println("public class " + actualTable.toString() + "Dao {");
