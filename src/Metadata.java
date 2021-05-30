@@ -8,6 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.io.File;
 
 /**
  * @author Andres.Cespedes
@@ -64,14 +65,17 @@ public class Metadata {
         return tables;
     }
 
-    public static String geraModel(ResultSet rs, Object actualTable) throws SQLException {
-        rs = metadata.getColumns(null, null, actualTable.toString(), null);
+    public static String geraModel(Object actualTable) throws SQLException {
+        ResultSet rs = metadata.getColumns("trabalho01", null, actualTable.toString(), null);
         System.out.println("Criando model para a tabela " + actualTable.toString().toUpperCase());
         try {
             String corpo = "";
             String parametros = "";
             String parametroJc = "";
-            PrintWriter writer = new PrintWriter(actualTable.toString() + ".java", "UTF-8");
+            File file = new File ("C:/www/crud-generator/src/" + actualTable.toString() + "/" + actualTable.toString() + ".java");
+            file.getParentFile().mkdirs();
+            PrintWriter writer = new PrintWriter(file, "UTF-8");
+            writer.println("package " + actualTable.toString() + ";\n");
             writer.println("public class " + actualTable.toString() + " {");
             Utils utils = new Utils();
             while (rs.next()) {
@@ -104,11 +108,13 @@ public class Metadata {
         return "erro";
     }
 
-    public static String geraExemplo(ResultSet rs, Object actualTable, String parametros) throws SQLException {
-        rs = metadata.getColumns(null, null, actualTable.toString(), null);
+    public static void geraExemplo(Object actualTable, String parametros) throws SQLException {
+        ResultSet rs = metadata.getColumns("trabalho01", null, actualTable.toString(), null);
         System.out.println("Criando exemplo para a tabela " + actualTable.toString().toUpperCase());
         try {
-            PrintWriter writer = new PrintWriter(actualTable.toString() + "Exemplo.java", "UTF-8");
+            File file = new File ("C:/www/crud-generator/src/" + actualTable.toString() + "/" + actualTable.toString() + "Exemplo.java");
+            PrintWriter writer = new PrintWriter(file, "UTF-8");
+            writer.println("package " + actualTable.toString() + ";\n");
             writer.println("public class " + actualTable.toString() + "Exemplo {\n" +
                     "public static void main(String[] args){\n" +
                     actualTable.toString() + "Dao cs = new " + actualTable + "Dao();\n" +
@@ -156,7 +162,6 @@ public class Metadata {
             System.out.println(e);
         }
         System.out.println("\n");
-        return "erro";
     }
 
     public static void criar(PrintWriter writer, Object actualTable, ResultSet rs, String parametros) throws SQLException {
@@ -271,7 +276,7 @@ public class Metadata {
         writer.println("}");
     }
 
-    public static void ler(PrintWriter writer, Object actualTable, ResultSet rs, String parametros) throws SQLException {
+    public static void ler(PrintWriter writer, Object actualTable, String parametros) throws SQLException {
         writer.println("public static List<" + actualTable.toString() + "> busca" + actualTable.toString() + "(){");
         writer.println(" String sql = \"SELECT * FROM " + actualTable.toString() + "\";\n" +
                 "List<" + actualTable.toString() + "> results = new ArrayList<" + actualTable.toString() + ">();\n" +
@@ -313,11 +318,13 @@ public class Metadata {
                 "}");
     }
 
-    public static void geraCrud(ResultSet rs, Object actualTable, String parametros) throws SQLException {
-        rs = metadata.getColumns(null, null, actualTable.toString(), null);
+    public static void geraDao(Object actualTable, String parametros) throws SQLException {
+        ResultSet rs = metadata.getColumns("trabalho01", null, actualTable.toString(), null);
         System.out.println("Criando Dao para a tabela " + actualTable.toString().toUpperCase());
         try {
-            PrintWriter writer = new PrintWriter(actualTable.toString() + "Dao.java", "UTF-8");
+            File file = new File ("C:/www/crud-generator/src/" + actualTable.toString() + "/" + actualTable.toString() + "Dao.java");
+            PrintWriter writer = new PrintWriter(file, "UTF-8");
+            writer.println("package " + actualTable.toString() + ";\n");
             writer.println("public class " + actualTable.toString() + "Dao {");
             DatabaseMetaData dmd = connection.getMetaData();
             ResultSet primaryKeySet = dmd.getPrimaryKeys(null, null, actualTable.toString());
@@ -328,7 +335,7 @@ public class Metadata {
             criar(writer, actualTable, rs, parametros);
             editar(writer, actualTable, rs, parametros, primaryKey);
             remover(writer, actualTable, primaryKey);
-            ler(writer, actualTable, rs, parametros);
+            ler(writer, actualTable, parametros);
             writer.println("}");
             writer.close();
         } catch (Exception e) {
@@ -338,18 +345,12 @@ public class Metadata {
     }
 
     public static void getColumnsMetadata(ArrayList tables) throws SQLException {
-        ResultSet rs = null;
         // Print the columns properties of the actual table
         for (Object actualTable : tables) {
-
-            String parametros = geraModel(rs, actualTable);
-            geraExemplo(rs, actualTable, parametros);
-            geraCrud(rs, actualTable, parametros);
+            String parametros = geraModel(actualTable);
+            geraDao(actualTable, parametros);
+            geraExemplo(actualTable, parametros);
         }
-    }
-
-    public static void conexaoExemplo() {
-
     }
 
     /**
