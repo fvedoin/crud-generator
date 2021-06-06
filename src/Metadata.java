@@ -130,8 +130,9 @@ public class Metadata {
             writer.println(imprime);
             writer.println("}");
             //INSERINDO REGISTROS
+            writer.println("EasyRandom easyRandom = new EasyRandom();");
+            writer.println(actualTable.toString() + " c1 = easyRandom.nextObject(" + actualTable.toString() + ".class);");
             writer.println("System.out.println(\"Inserindo dados na tabela " + actualTable.toString() + "\");\n" +
-                    actualTable.toString() + " c1 = new " + actualTable.toString() + "();\n" +
                     "cs.insere" + actualTable + "(c1);");
             writer.println("System.out.println(\"Listando todos os dados da tabela " + actualTable.toString() + "\");\n" +
                     "for(" + actualTable.toString() + " temp : cs.busca" + actualTable + "()){\n" +
@@ -166,7 +167,7 @@ public class Metadata {
 
     public static void criar(PrintWriter writer, Object actualTable, ResultSet rs, String parametros) throws SQLException {
         String settingValues = "";
-        writer.println("public static void insere" + actualTable.toString() + "(" + actualTable.toString() + " objeto){");
+        writer.println("public static void insere" + actualTable.toString() + "(" + actualTable.toString() + " " + actualTable.toString() + "Objeto){");
         String sql = "String sql = \"INSERT INTO " + actualTable.toString() + "(" + parametros + ")" +
                 " VALUES(";
         Integer i = 0, j;
@@ -176,20 +177,20 @@ public class Metadata {
         while (rs.next()) {
             String tipo = utils.tipoAtributo(rs.getString("TYPE_NAME"));
             j = i + 1;
-            if(tipo.equals("Integer"))
+            if (tipo.equals("Integer"))
                 tipo = "Int";
-            settingValues += "pstm.set" + tipo + "(" + j + ",objeto.get" + campos[i] + "());\n";
-            if(rs.isLast())
+            settingValues += "pstm.set" + tipo + "(" + j + "," + actualTable.toString() + "Objeto.get" + campos[i] + "());\n";
+            if (rs.isLast())
                 sql += "?)\";\n";
             else
                 sql += "?,";
             i++;
         }
         writer.println(sql);
-        writer.println("DBConnection conn = null;\n" +
+        writer.println("Connection conn = null;\n" +
                 "PreparedStatement pstm = null;\n" +
                 "try {\n" +
-                "conn = (DBConnection) DBConnection.getConnection();\n" +
+                "conn = DBConnection.getConnection();\n" +
                 "pstm = conn.prepareStatement(sql);\n" +
                 settingValues +
                 "pstm.execute();\n" +
@@ -211,31 +212,41 @@ public class Metadata {
     }
 
     public static void remover(PrintWriter writer, Object actualTable, String coluna) throws SQLException {
-        writer.println("public static void remove" + actualTable.toString() + "(" + coluna + "){");
-        String sql = "String sql = \"DELETE FROM " + actualTable.toString() + " WHERE " + coluna + " = \"+" + coluna + "+\";";
+        //NOME DA COLUNA PRIMARY KEY
+        DatabaseMetaData dmd = connection.getMetaData();
+        ResultSet primaryKeySet = dmd.getPrimaryKeys("trabalho01", null, actualTable.toString());
+        String primaryKey = "";
+        while (primaryKeySet.next()) {
+            primaryKey = primaryKeySet.getString("COLUMN_NAME");
+        }
+        writer.print("public static void remove" + actualTable.toString() + "(");
+        int i = 1;
+        Utils utils = new Utils();
+        String columnName;
+        String columnType;
+        ResultSet rs = metadata.getColumns("trabalho01", null, actualTable.toString(), null);
+        while (rs.next()) {
+            columnType = utils.tipoAtributo(rs.getString("TYPE_NAME"));
+            columnName = rs.getString("COLUMN_NAME");
+
+            //CONCATENA PARAMETROS NO METODO DA CLASSE
+            if (columnName.equals(primaryKey)) {
+                writer.print(columnType + " " + columnName + "");
+            }
+        }
+        writer.println("){");
+        String sql = "String sql = \"DELETE FROM " + actualTable.toString() + " WHERE " + coluna + " = \"+" + coluna + ";";
         writer.println(sql);
         writer.println("Connection conn = null;\n" +
                 "PreparedStatement pstm = null;\n" +
                 "try {\n" +
-                "conn = Conexao.getConnection();\n" +
+                "conn = DBConnection.getConnection();\n" +
                 "pstm = conn.prepareStatement(sql);\n" +
                 "pstm.execute();\n" +
                 "} catch (Exception e) {\n" +
                 "e.printStackTrace();\n" +
-                "}finally{\n" +
-                "e.printStackTrace();\n" +
-                "try{\n" +
-                "if(pstm != null){\n" +
-                "pstm.close();\n" +
-                "}\n" +
-                "if(conn != null){\n" +
-                "conn.close();\n" +
-                "}\n" +
-                "}catch(Exception e){\n" +
-                "e.printStackTrace();\n" +
-                "}\n" +
-                "}\n" +
                 "}");
+        writer.println("}");
     }
 
     public static void editar(PrintWriter writer, Object actualTable, String parametros, String coluna) throws SQLException {
@@ -243,11 +254,12 @@ public class Metadata {
         ResultSet rs = metadata.getColumns("trabalho01", null, actualTable.toString(), null);
         String settingValues = "";
         writer.print("public static void edita" + actualTable.toString() + "(");
-        String sql = "String sql = \"UPDATE " + parametros.substring(coluna.length() + 1) + " SET ";
+        String sql = "String sql = \"UPDATE " + actualTable.toString() + " SET ";
         //NOME DA COLUNA PRIMARY KEY
         DatabaseMetaData dmd = connection.getMetaData();
-        ResultSet primaryKeySet = dmd.getPrimaryKeys(null, null, actualTable.toString());
+        ResultSet primaryKeySet = dmd.getPrimaryKeys("trabalho01", null, actualTable.toString());
         String primaryKey = "";
+        String primaryKeyType = "";
         while (primaryKeySet.next()) {
             primaryKey = primaryKeySet.getString("COLUMN_NAME");
         }
@@ -264,47 +276,44 @@ public class Metadata {
                 writer.print(",");
 
             //CONCATENA PARAMETROS NA QUERY SQL
-            if(!columnName.equals(primaryKey)){
-                sql += columnName + " = \"+" + columnName + "+\"";
+            if (!columnName.equals(primaryKey)) {
+                sql += columnName + " = ? ";
                 if (!rs.isLast())
                     sql += ",";
             }
 
             //CONCATENA PARAMETROS NO PREPARED STATEMENT
             String tipo = utils.tipoAtributo(rs.getString("TYPE_NAME"));
-            if(tipo.equals("Integer"))
+            if (tipo.equals("Integer"))
                 tipo = "Int";
-            settingValues += "pstm.set" + tipo + "(" + i + "," + columnName + ");\n";
-            i++;
+            if (!columnName.equals(primaryKey)) {
+                settingValues += "pstm.set" + tipo + "(" + i + "," + columnName + ");\n";
+                i++;
+            }
+            if (columnName.equals(primaryKey)) {
+                primaryKeyType = tipo;
+            }
         }
         writer.println("){");
-        sql += " WHERE " + primaryKey + " = \"+" + primaryKey + ";";
+        sql += " WHERE " + primaryKey + " = ?\";";
         writer.println(sql);
-        writer.println("DBConnection conn = null;\n" +
+        writer.println("Connection conn = null;\n" +
                 "PreparedStatement pstm = null;\n" +
                 "try {\n" +
-                "conn = (DBConnection) DBConnection.getConnection();\n" +
+                "conn = DBConnection.getConnection();\n" +
                 "pstm = conn.prepareStatement(sql);\n" +
                 settingValues +
+                "pstm.set" + primaryKeyType + "(" + i + ", " + primaryKey + ");\n" +
                 "pstm.execute();\n" +
                 "}catch (Exception e) {\n" +
                 "e.printStackTrace();\n" +
-                "}finally{\n" +
-                "try{\n" +
-                "if(pstm != null){\n" +
-                "pstm.close();\n" +
-                "}\n" +
-                "if(conn != null){\n" +
-                "conn.close();\n" +
-                "}\n" +
-                "}catch(Exception e){\n" +
-                "e.printStackTrace();\n" +
                 "}");
-        writer.println("}");
         writer.println("}");
     }
 
     public static void ler(PrintWriter writer, Object actualTable, String parametros) throws SQLException {
+        ResultSet rs = metadata.getColumns("trabalho01", null, actualTable.toString(), null);
+        Utils utils = new Utils();
         writer.println("public static List<" + actualTable.toString() + "> busca" + actualTable.toString() + "(){");
         writer.println(" String sql = \"SELECT * FROM " + actualTable.toString() + "\";\n" +
                 "List<" + actualTable.toString() + "> results = new ArrayList<" + actualTable.toString() + ">();\n" +
@@ -312,18 +321,32 @@ public class Metadata {
                 "PreparedStatement pstm = null;\n" +
                 "ResultSet rset = null;");
         writer.println(" try {\n" +
-                "conn = Conexao.getConnection();\n" +
+                "conn = DBConnection.getConnection();\n" +
                 "pstm = conn.prepareStatement(sql);\n" +
                 "rset = pstm.executeQuery();\n" +
                 "while(rset.next()){\n" +
-                actualTable.toString() + " result = new " + actualTable.toString() + "();");
+                actualTable.toString() + " result = new " + actualTable.toString() + "(");
         parametros.replaceAll(" ", "");
         String[] campos = parametros.split(",");
-        for (Integer i = 0; i < campos.length; i++) {
-            writer.println("result.set" + campos[i] + "(rset.getString(\"" + campos[i] + "\"))");
-        }
 
-        writer.println("results.add(result)\n" +
+        String columnName = "";
+        int i = 1;
+        while (rs.next()) {
+            columnName = rs.getString("COLUMN_NAME");
+
+            //CONCATENA PARAMETROS NO PREPARED STATEMENT
+            String tipo = utils.tipoAtributo(rs.getString("TYPE_NAME"));
+            if (tipo.equals("Integer"))
+                tipo = "Int";
+
+            writer.print("rset.get" + tipo + "(\"" + columnName + "\")");
+            i++;
+
+            if (!rs.isLast())
+                writer.print(",");
+        }
+        writer.println(");");
+        writer.println("results.add(result);\n" +
                 "}\n" +
                 "} catch (Exception e) {\n" +
                 "e.printStackTrace();\n" +
@@ -353,8 +376,12 @@ public class Metadata {
             File file = new File(System.getProperty("user.dir") + "/src/" + actualTable.toString() + "/" + actualTable.toString() + "Dao.java");
             PrintWriter writer = new PrintWriter(file, "UTF-8");
             writer.println("package " + actualTable.toString() + ";\n");
-            writer.println("import conexao.DBConnection;\n");
+            writer.println("import conexao.DBConnection;");
             writer.println("import java.sql.PreparedStatement;\n");
+            writer.println("import java.sql.Connection;");
+            writer.println("import java.sql.ResultSet;");
+            writer.println("import java.util.ArrayList;");
+            writer.println("import java.util.List;\n");
 
             writer.println("public class " + actualTable.toString() + "Dao {");
             DatabaseMetaData dmd = connection.getMetaData();
