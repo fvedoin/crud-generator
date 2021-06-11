@@ -52,10 +52,10 @@ public class Metadata {
     public static ArrayList getTablesMetadata() throws SQLException {
         String table[] = {"TABLE"};
         ResultSet rs = null;
-        ArrayList tables = null;
+        ArrayList<String> tables = null;
         // receive the Type of the object in a String array.
         rs = metadata.getTables("trabalho01", null, null, table);
-        tables = new ArrayList();
+        tables = new ArrayList<>();
         while (rs.next()) {
             tables.add(rs.getString("TABLE_NAME"));
         }
@@ -107,16 +107,29 @@ public class Metadata {
 
     public static void geraExemplo(Object actualTable, String parametros) throws SQLException {
         ResultSet rs = metadata.getColumns("trabalho01", null, actualTable.toString(), null);
-        System.out.println("Criando exemplo para a tabela " + actualTable.toString().toUpperCase());
+        String nomeTabela = actualTable.toString();
+        System.out.println("Criando exemplo para a tabela " + nomeTabela.toUpperCase());
+        //NOME DA COLUNA PRIMARY KEY
+        DatabaseMetaData dmd = connection.getMetaData();
+        ResultSet primaryKeySet = dmd.getPrimaryKeys("trabalho01", null, nomeTabela);
+        String primaryKey = "";
+        while (primaryKeySet.next()) {
+            primaryKey = primaryKeySet.getString("COLUMN_NAME");
+        }
         try {
-            File file = new File(System.getProperty("user.dir") + "/src/" + actualTable.toString() + "/" + actualTable.toString() + "Exemplo.java");
+            File file = new File(System.getProperty("user.dir") + "/src/" + nomeTabela + "/" + nomeTabela + "Exemplo.java");
             PrintWriter writer = new PrintWriter(file, "UTF-8");
-            writer.println("package " + actualTable.toString() + ";\n");
-            writer.println("public class " + actualTable.toString() + "Exemplo {\n" +
+            writer.println("package " + nomeTabela + ";\n");
+            writer.println("import org.jeasy.random.EasyRandom;");
+            writer.println("import org.objenesis.Objenesis;");
+            writer.println("import com.fasterxml.jackson.core.*;");
+            writer.println("import com.fasterxml.jackson.annotation.*;");
+            writer.println("import com.fasterxml.jackson.databind.*;");
+            writer.println("public class " + nomeTabela + "Exemplo {\n" +
                     "public static void main(String[] args){\n" +
-                    actualTable.toString() + "Dao cs = new " + actualTable + "Dao();\n" +
-                    "System.out.println(\"Listando todos os dados da tabela " + actualTable.toString() + "\");\n" +
-                    "for(" + actualTable.toString() + " temp : cs.busca" + actualTable + "()){");
+                    nomeTabela + "Dao cs = new " + actualTable + "Dao();\n" +
+                    "System.out.println(\"Listando todos os dados da tabela " + nomeTabela + "\");\n" +
+                    "for(" + nomeTabela + " temp : cs.busca" + actualTable + "()){");
             String imprime = "System.out.println(";
             parametros.replaceAll(" ", "");
             String[] campos = parametros.split(",");
@@ -131,28 +144,37 @@ public class Metadata {
             writer.println("}");
             //INSERINDO REGISTROS
             writer.println("EasyRandom easyRandom = new EasyRandom();");
-            writer.println(actualTable.toString() + " c1 = easyRandom.nextObject(" + actualTable.toString() + ".class);");
-            writer.println("System.out.println(\"Inserindo dados na tabela " + actualTable.toString() + "\");\n" +
+            writer.println(nomeTabela + " c1 = easyRandom.nextObject(" + nomeTabela + ".class);");
+            writer.println("System.out.println(\"Inserindo dados na tabela " + nomeTabela + "\");\n" +
                     "cs.insere" + actualTable + "(c1);");
-            writer.println("System.out.println(\"Listando todos os dados da tabela " + actualTable.toString() + "\");\n" +
-                    "for(" + actualTable.toString() + " temp : cs.busca" + actualTable + "()){\n" +
+            writer.println("System.out.println(\"Listando todos os dados da tabela " + nomeTabela + "\");\n" +
+                    "for(" + nomeTabela + " temp : cs.busca" + actualTable + "()){\n" +
                     imprime + "\n" +
                     "}");
-
-            writer.println("System.out.println(\"Alterando o cliente 1\");\n" +
-                    "cs.edita" + actualTable.toString() + "();");
-            writer.println("System.out.println(\"Listando todos os dados da tabela " + actualTable.toString() + "\");\n" +
-                    "for(" + actualTable.toString() + " temp : cs.busca" + actualTable + "()){\n" +
+            writer.println(nomeTabela + " c2 = easyRandom.nextObject(" + nomeTabela + ".class);");
+            writer.println("c2.set" + primaryKey + "(c1.get" + primaryKey + "());");
+            writer.println("System.out.println(\"Alterando o registro\");\n" +
+                    "cs.edita" + nomeTabela + "(");
+            String tmp = "";
+            for (Integer i = 0; i < campos.length; i++) {
+                tmp += "c2.get" + campos[i] + "()";
+                if (i != campos.length - 1) {
+                    tmp += ",";
+                }
+            }
+            writer.println(tmp + ");");
+            writer.println("System.out.println(\"Listando todos os dados da tabela " + nomeTabela + "\");\n" +
+                    "for(" + nomeTabela + " temp : cs.busca" + actualTable + "()){\n" +
                     imprime + "\n" +
                     "}");
 
             //APAGANDO REGISTROS
             writer.println("System.out.println(\"Apagando todos os registros da tabela " + actualTable + "\");\n" +
-                    "for(" + actualTable.toString() + " temp : cs.busca" + actualTable + "()){\n" +
-                    "cs.remove" + actualTable.toString() + "(temp.get" + campos[0] + "());");
+                    "for(" + nomeTabela + " temp : cs.busca" + actualTable + "()){\n" +
+                    "cs.remove" + nomeTabela + "(temp.get" + campos[0] + "());");
             writer.println("}");
-            writer.println("System.out.println(\"Listando todos os dados da tabela " + actualTable.toString() + "\");\n" +
-                    "for(" + actualTable.toString() + " temp : cs.busca" + actualTable + "()){\n" +
+            writer.println("System.out.println(\"Listando todos os dados da tabela " + nomeTabela + "\");\n" +
+                    "for(" + nomeTabela + " temp : cs.busca" + actualTable + "()){\n" +
                     imprime + "\n" +
                     "}");
             writer.println("}\n" +
@@ -212,19 +234,20 @@ public class Metadata {
     }
 
     public static void remover(PrintWriter writer, Object actualTable, String coluna) throws SQLException {
+        String nomeTabela = actualTable.toString();
+        Utils utils = new Utils();
         //NOME DA COLUNA PRIMARY KEY
         DatabaseMetaData dmd = connection.getMetaData();
-        ResultSet primaryKeySet = dmd.getPrimaryKeys("trabalho01", null, actualTable.toString());
+        ResultSet primaryKeySet = dmd.getPrimaryKeys("trabalho01", null, nomeTabela);
         String primaryKey = "";
         while (primaryKeySet.next()) {
             primaryKey = primaryKeySet.getString("COLUMN_NAME");
         }
-        writer.print("public static void remove" + actualTable.toString() + "(");
+        writer.print("public static void remove" + nomeTabela + "(");
         int i = 1;
-        Utils utils = new Utils();
         String columnName;
         String columnType;
-        ResultSet rs = metadata.getColumns("trabalho01", null, actualTable.toString(), null);
+        ResultSet rs = metadata.getColumns("trabalho01", null, nomeTabela, null);
         while (rs.next()) {
             columnType = utils.tipoAtributo(rs.getString("TYPE_NAME"));
             columnName = rs.getString("COLUMN_NAME");
@@ -235,14 +258,15 @@ public class Metadata {
             }
         }
         writer.println("){");
-        String sql = "String sql = \"DELETE FROM " + actualTable.toString() + " WHERE " + coluna + " = \"+" + coluna + ";";
+        String sql = "String sql = \"DELETE FROM " + nomeTabela + " WHERE " + coluna + " = \"+" + coluna + ";";
         writer.println(sql);
-        writer.println("Connection conn = null;\n" +
-                "PreparedStatement pstm = null;\n" +
+        writer.println("Connection conn;\n" +
+                "PreparedStatement pstm;\n" +
                 "try {\n" +
                 "conn = DBConnection.getConnection();\n" +
                 "pstm = conn.prepareStatement(sql);\n" +
                 "pstm.execute();\n" +
+                "pstm.close();\n" +
                 "} catch (Exception e) {\n" +
                 "e.printStackTrace();\n" +
                 "}");
@@ -251,13 +275,14 @@ public class Metadata {
 
     public static void editar(PrintWriter writer, Object actualTable, String parametros, String coluna) throws SQLException {
         Utils utils = new Utils();
-        ResultSet rs = metadata.getColumns("trabalho01", null, actualTable.toString(), null);
+        String nomeTabela = actualTable.toString();
+        ResultSet rs = metadata.getColumns("trabalho01", null, nomeTabela, null);
         String settingValues = "";
-        writer.print("public static void edita" + actualTable.toString() + "(");
-        String sql = "String sql = \"UPDATE " + actualTable.toString() + " SET ";
+        writer.print("public static void edita" + nomeTabela + "(");
+        String sql = "String sql = \"UPDATE " + nomeTabela + " SET ";
         //NOME DA COLUNA PRIMARY KEY
         DatabaseMetaData dmd = connection.getMetaData();
-        ResultSet primaryKeySet = dmd.getPrimaryKeys("trabalho01", null, actualTable.toString());
+        ResultSet primaryKeySet = dmd.getPrimaryKeys("trabalho01", null, nomeTabela);
         String primaryKey = "";
         String primaryKeyType = "";
         while (primaryKeySet.next()) {
@@ -307,16 +332,28 @@ public class Metadata {
                 "pstm.execute();\n" +
                 "}catch (Exception e) {\n" +
                 "e.printStackTrace();\n" +
-                "}");
+                "}finally{\n" +
+                "try{\n" +
+                "if(pstm != null){\n" +
+                "pstm.close();\n" +
+                "}\n" +
+                "if(conn != null){\n" +
+                "conn.close();\n" +
+                "}\n" +
+                "}catch(Exception e){\n" +
+                "e.printStackTrace();\n" +
+                "}\n" +
+                "}\n");
         writer.println("}");
     }
 
     public static void ler(PrintWriter writer, Object actualTable, String parametros) throws SQLException {
-        ResultSet rs = metadata.getColumns("trabalho01", null, actualTable.toString(), null);
+        String nomeTabela = actualTable.toString();
+        ResultSet rs = metadata.getColumns("trabalho01", null, nomeTabela, null);
         Utils utils = new Utils();
-        writer.println("public static List<" + actualTable.toString() + "> busca" + actualTable.toString() + "(){");
-        writer.println(" String sql = \"SELECT * FROM " + actualTable.toString() + "\";\n" +
-                "List<" + actualTable.toString() + "> results = new ArrayList<" + actualTable.toString() + ">();\n" +
+        writer.println("public static List<" + nomeTabela + "> busca" + nomeTabela + "(){");
+        writer.println(" String sql = \"SELECT * FROM " + nomeTabela + "\";\n" +
+                "List<" + nomeTabela + "> results = new ArrayList<" + nomeTabela + ">();\n" +
                 "Connection conn = null;\n" +
                 "PreparedStatement pstm = null;\n" +
                 "ResultSet rset = null;");
@@ -325,7 +362,7 @@ public class Metadata {
                 "pstm = conn.prepareStatement(sql);\n" +
                 "rset = pstm.executeQuery();\n" +
                 "while(rset.next()){\n" +
-                actualTable.toString() + " result = new " + actualTable.toString() + "(");
+                nomeTabela + " result = new " + nomeTabela + "(");
         parametros.replaceAll(" ", "");
         String[] campos = parametros.split(",");
 
@@ -370,12 +407,13 @@ public class Metadata {
     }
 
     public static void geraDao(Object actualTable, String parametros) throws SQLException {
-        ResultSet rs = metadata.getColumns("trabalho01", null, actualTable.toString(), null);
-        System.out.println("Criando Dao para a tabela " + actualTable.toString().toUpperCase());
+        String nomeTabela = actualTable.toString();
+        ResultSet rs = metadata.getColumns("trabalho01", null, nomeTabela, null);
+        System.out.println("Criando Dao para a tabela " + nomeTabela.toUpperCase());
         try {
-            File file = new File(System.getProperty("user.dir") + "/src/" + actualTable.toString() + "/" + actualTable.toString() + "Dao.java");
+            File file = new File(System.getProperty("user.dir") + "/src/" + nomeTabela + "/" + nomeTabela + "Dao.java");
             PrintWriter writer = new PrintWriter(file, "UTF-8");
-            writer.println("package " + actualTable.toString() + ";\n");
+            writer.println("package " + nomeTabela + ";\n");
             writer.println("import conexao.DBConnection;");
             writer.println("import java.sql.PreparedStatement;\n");
             writer.println("import java.sql.Connection;");
@@ -383,9 +421,9 @@ public class Metadata {
             writer.println("import java.util.ArrayList;");
             writer.println("import java.util.List;\n");
 
-            writer.println("public class " + actualTable.toString() + "Dao {");
+            writer.println("public class " + nomeTabela + "Dao {");
             DatabaseMetaData dmd = connection.getMetaData();
-            ResultSet primaryKeySet = dmd.getPrimaryKeys(null, null, actualTable.toString());
+            ResultSet primaryKeySet = dmd.getPrimaryKeys(null, null, nomeTabela);
             String primaryKey = "";
             while (primaryKeySet.next()) {
                 primaryKey = primaryKeySet.getString("COLUMN_NAME");

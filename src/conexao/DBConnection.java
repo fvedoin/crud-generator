@@ -10,7 +10,6 @@ public abstract class DBConnection implements Connection {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
             con = DriverManager.getConnection("jdbc:mysql://localhost:3306/trabalho01", "root", "");
-            System.out.println("Conectado com sucesso");
         } catch (SQLException e){
             System.out.println("Erro - conexão"+e.getMessage());
             e.printStackTrace();
