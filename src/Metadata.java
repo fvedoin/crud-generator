@@ -4,7 +4,6 @@ import utils.Utils;
 import java.io.PrintWriter;
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.io.File;
 
 /**
@@ -76,7 +75,7 @@ public class Metadata {
             writer.println("public class " + actualTable.toString() + " {");
             Utils utils = new Utils();
             while (rs.next()) {
-                String tipo = utils.tipoAtributo(rs.getString("TYPE_NAME"));
+                String tipo = utils.tipoAtributoModel(rs.getString("TYPE_NAME"));
 
                 writer.println("private " + tipo + " " + rs.getString("COLUMN_NAME") + ";");
                 //rs.getString("COLUMN_SIZE"));
