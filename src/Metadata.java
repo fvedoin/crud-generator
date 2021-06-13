@@ -94,6 +94,7 @@ public class Metadata {
             writer.println("public " + actualTable.toString() + "(" + parametros + "){");
             writer.println(corpo);
             writer.println("}");
+            writer.println("public " + actualTable.toString() + "(){}");
             writer.println("}");
 
             writer.close();
@@ -347,6 +348,113 @@ public class Metadata {
         writer.println("}");
     }
 
+    public static String montaSqlInsercao(String nomeTabela, String parametros, ResultSet rs) throws SQLException {
+        String sql = "";
+        sql += "INSERT INTO " + nomeTabela + " (" + parametros + ") VALUES (";
+        while (rs.next()) {
+            if (rs.isLast())
+                sql += "?";
+            else
+                sql += "?,";
+        }
+        sql += ")";
+        return sql;
+    }
+
+    public static String montaSqlAlteracao(String nomeTabela, DatabaseMetaData metadata, String primaryKey) throws SQLException {
+        ResultSet rs = metadata.getColumns("trabalho01", null, nomeTabela, null);
+        String sql = "UPDATE " + nomeTabela + " SET ";
+        String columnName;
+        while (rs.next()) {
+            columnName = rs.getString("COLUMN_NAME");
+            if (!columnName.equals(primaryKey)) {
+                sql += "" + columnName + " = ?";
+                if (!rs.isLast())
+                    sql += ",";
+            }
+        }
+        sql += " WHERE " + primaryKey + " = ?";
+        return sql;
+    }
+
+    public static String montaSqlExclusao(String nomeTabela, String primaryKey) throws SQLException {
+
+        String sql = "DELETE FROM " + nomeTabela + " WHERE " + primaryKey + " = ?";
+        return sql;
+
+    }
+
+    public static String montaSqlBuscaChavePrimaria(String nomeTabela, String primaryKey) throws SQLException {
+
+        String sql = "SELECT * FROM " + nomeTabela + " WHERE " + primaryKey + " = ?";
+        return sql;
+
+    }
+
+    public static String montaSqlBuscaTodos(String nomeTabela) throws SQLException {
+
+        String sql = "SELECT * FROM " + nomeTabela;
+        return sql;
+
+    }
+
+    public static void preencheAlteracao(PrintWriter writer, Object actualTable, String parametros, String primaryKey) throws SQLException {
+        String nomeTabela = actualTable.toString();
+        Utils utils = new Utils();
+        ResultSet rs = metadata.getColumns("trabalho01", null, nomeTabela, null);
+        //NOME DA COLUNA PRIMARY KEY
+        DatabaseMetaData dmd = connection.getMetaData();
+        String primaryKeyType = "";
+        String settingValues = "";
+
+        int i = 1;
+        String columnName;
+        while (rs.next()) {
+            columnName = rs.getString("COLUMN_NAME");
+
+            //CONCATENA PARAMETROS NO PREPARED STATEMENT
+            String tipo = utils.tipoAtributo(rs.getString("TYPE_NAME"));
+            if (tipo.equals("Integer"))
+                tipo = "Int";
+            if (!columnName.equals(primaryKey)) {
+                settingValues += "ps.set" + tipo + "(" + i + ", c.get" + columnName + "());\n";
+                i++;
+            } else {
+                primaryKeyType = tipo;
+            }
+        }
+        writer.print("@Override"
+                + " protected void preencherAlteracao(PreparedStatement ps, " + nomeTabela + " c) throws SQLException {"
+                + settingValues
+                + "ps.set" + primaryKeyType + "(" + i + ", c.get" + primaryKey + "());"
+                + "}");
+    }
+
+    public static void preencheExclusao(PrintWriter writer, Object actualTable, String primaryKey) throws SQLException {
+        String nomeTabela = actualTable.toString();
+        Utils utils = new Utils();
+        ResultSet rs = metadata.getColumns("trabalho01", null, nomeTabela, null);
+
+        String settingValues = "";
+
+        String columnName;
+        while (rs.next()) {
+            columnName = rs.getString("COLUMN_NAME");
+
+            //CONCATENA PARAMETROS NO PREPARED STATEMENT
+            String tipo = utils.tipoAtributo(rs.getString("TYPE_NAME"));
+            if (tipo.equals("Integer"))
+                tipo = "Int";
+            if (columnName.equals(primaryKey)) {
+                settingValues = "ps.set" + tipo + "(1, c.get" + columnName + "());\n";
+            }
+        }
+        writer.print("@Override"
+                + " protected void preencherExclusao(PreparedStatement ps, " + nomeTabela + " c) throws SQLException {"
+                + settingValues
+                + "}");
+    }
+
     public static void ler(PrintWriter writer, Object actualTable, String parametros) throws SQLException {
         String nomeTabela = actualTable.toString();
         ResultSet rs = metadata.getColumns("trabalho01", null, nomeTabela, null);
@@ -406,32 +514,132 @@ public class Metadata {
                 "}");
     }
 
+    public static void preencheInsercao(PrintWriter writer, Object actualTable, String parametros) throws SQLException {
+        String nomeTabela = actualTable.toString();
+        Utils utils = new Utils();
+        ResultSet rs = metadata.getColumns("trabalho01", null, nomeTabela, null);
+        String settingValues = "";
+
+        int i = 1;
+        String columnName;
+        while (rs.next()) {
+            columnName = rs.getString("COLUMN_NAME");
+
+            //CONCATENA PARAMETROS NO PREPARED STATEMENT
+            String tipo = utils.tipoAtributo(rs.getString("TYPE_NAME"));
+            if (tipo.equals("Integer"))
+                tipo = "Int";
+
+            settingValues += "ps.set" + tipo + "(" + i + ", c.get" + columnName + "());\n";
+            i++;
+
+        }
+        writer.print("@Override"
+                + " protected void preencherInsercao(PreparedStatement ps, " + nomeTabela + " c) throws SQLException {"
+                + settingValues
+                + "}");
+    }
+
+    public static void preenche(PrintWriter writer, Object actualTable) throws SQLException {
+        String nomeTabela = actualTable.toString();
+        Utils utils = new Utils();
+        ResultSet rs = metadata.getColumns("trabalho01", null, nomeTabela, null);
+        String settingValues = "";
+
+        int i = 1;
+        String columnName;
+        while (rs.next()) {
+            columnName = rs.getString("COLUMN_NAME");
+
+            //CONCATENA PARAMETROS NO PREPARED STATEMENT
+            String tipo = utils.tipoAtributo(rs.getString("TYPE_NAME"));
+            if (tipo.equals("Integer"))
+                tipo = "Int";
+
+            settingValues += "c.set" + columnName + "(rs.get" + tipo + "(\"" + columnName + "\"));\n";
+            i++;
+
+        }
+        writer.print("@Override"
+                + " protected " + nomeTabela + " preencher(ResultSet rs) throws SQLException {"
+                + nomeTabela + " c = new " + nomeTabela + "();"
+                + settingValues
+                + "return c;"
+                + "}");
+    }
+
+    public static void preencheColecao(PrintWriter writer, Object actualTable) throws SQLException {
+        String nomeTabela = actualTable.toString();
+        Utils utils = new Utils();
+        ResultSet rs = metadata.getColumns("trabalho01", null, nomeTabela, null);
+        String settingValues = "";
+
+        int i = 1;
+        String columnName;
+        while (rs.next()) {
+            columnName = rs.getString("COLUMN_NAME");
+
+            //CONCATENA PARAMETROS NO PREPARED STATEMENT
+            String tipo = utils.tipoAtributo(rs.getString("TYPE_NAME"));
+            if (tipo.equals("Integer"))
+                tipo = "Int";
+
+            settingValues += "temp.set" + columnName + "(rs.get" + tipo + "(\"" + columnName + "\"));\n";
+            i++;
+
+        }
+        writer.print("@Override"
+                + " protected Collection<" + nomeTabela + "> preencherColecao(ResultSet rs) throws SQLException {"
+                + "Collection<" + nomeTabela + "> retorno = new ArrayList<" + nomeTabela + ">();"
+                + "while (rs.next()){"
+                + nomeTabela + " temp = new " + nomeTabela + "();"
+                + settingValues
+                + "retorno.add(temp);"
+                + "}"
+                + "return retorno;"
+                + "}");
+    }
+
     public static void geraDao(Object actualTable, String parametros) throws SQLException {
         String nomeTabela = actualTable.toString();
         ResultSet rs = metadata.getColumns("trabalho01", null, nomeTabela, null);
         System.out.println("Criando Dao para a tabela " + nomeTabela.toUpperCase());
+        DatabaseMetaData dmd = connection.getMetaData();
+        ResultSet primaryKeySet = dmd.getPrimaryKeys(null, null, nomeTabela);
+        String primaryKey = "";
+        while (primaryKeySet.next()) {
+            primaryKey = primaryKeySet.getString("COLUMN_NAME");
+        }
         try {
             File file = new File(System.getProperty("user.dir") + "/src/" + nomeTabela + "/" + nomeTabela + "Dao.java");
             PrintWriter writer = new PrintWriter(file, "UTF-8");
             writer.println("package " + nomeTabela + ";\n");
-            writer.println("import conexao.DBConnection;");
-            writer.println("import java.sql.PreparedStatement;\n");
-            writer.println("import java.sql.Connection;");
+            writer.println("import java.sql.PreparedStatement;");
             writer.println("import java.sql.ResultSet;");
+            writer.println("import java.sql.SQLException;");
             writer.println("import java.util.ArrayList;");
-            writer.println("import java.util.List;\n");
+            writer.println("import java.util.Collection;");
+            writer.println("import utils.Registros;\n");
 
-            writer.println("public class " + nomeTabela + "Dao {");
-            DatabaseMetaData dmd = connection.getMetaData();
-            ResultSet primaryKeySet = dmd.getPrimaryKeys(null, null, nomeTabela);
-            String primaryKey = "";
-            while (primaryKeySet.next()) {
-                primaryKey = primaryKeySet.getString("COLUMN_NAME");
-            }
-            criar(writer, actualTable, rs, parametros);
-            editar(writer, actualTable, parametros, primaryKey);
+
+            writer.println("public class " + nomeTabela + "Dao extends Registros<" + nomeTabela + ">{");
+            writer.println("public " + nomeTabela + "Dao() {");
+            writer.print("setSqlInsercao(\"" + montaSqlInsercao(nomeTabela, parametros, rs) + "\");");
+            writer.println("setSqlAlteracao(\"" + montaSqlAlteracao(nomeTabela, metadata, primaryKey) + "\");");
+            writer.println("setSqlExclusao(\"" + montaSqlExclusao(nomeTabela, primaryKey) + "\");");
+            writer.println("setSqlBuscaChavePrimaria(\"" + montaSqlBuscaChavePrimaria(nomeTabela, primaryKey) + "\");");
+            writer.println("setSqlBuscaTodos(\"" + montaSqlBuscaTodos(nomeTabela) + "\");");
+            writer.println("}");
+
+
+            preencheInsercao(writer, actualTable, parametros);
+            preencheAlteracao(writer, actualTable, parametros, primaryKey);
+            preencheExclusao(writer, actualTable, primaryKey);
+            preenche(writer, actualTable);
+            preencheColecao(writer, actualTable);
+            /*editar(writer, actualTable, parametros, primaryKey);
             remover(writer, actualTable, primaryKey);
-            ler(writer, actualTable, parametros);
+            ler(writer, actualTable, parametros);*/
             writer.println("}");
             writer.close();
         } catch (Exception e) {
