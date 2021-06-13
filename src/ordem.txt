@@ -1,9 +1,0 @@
-POO - T2 - Duplas - Gerador de CRUDs - Crie um programa que leia os
-metadados de uma base de dados e gere os DAOs correspondentes às
-tabelas do esquema, bem como as classes que representam as
-entidades, e classes de exemplo da utilização dos DAOs criados. Ex.:
-Para as tabelas CLIENTES, FUNCIONARIOS, VENDAS, criar:
-ClientesDao, Cliente, ClienteExemplo, FuncionariosDao, Funcionario,
-FuncionarioExemplo, e assim sucessivamente. Usem a classe
-DatabaseMetaData para obter os metadados das tabelas. Ex.:
-https://examples.javacodegeeks.com/core-java/sql/jdbc-databasemetadata-example/
