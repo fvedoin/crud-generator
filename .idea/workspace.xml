@@ -1,7 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="e81b03f1-00de-4beb-9c23-325c58cca139" name="Default Changelist" comment="" />
+    <list default="true" id="e81b03f1-00de-4beb-9c23-325c58cca139" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/postgresql_42_2_20_jre7.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/postgresql_42_2_5_jre7.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/trabalho02/Metadata.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/trabalho02/Metadata.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/trabalho02/conexao/DBConnection.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/trabalho02/conexao/DBConnection.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/trabalho02/ordem.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/trabalho02/utils/Utils.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/trabalho02/utils/Utils.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/teste/teste.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/teste/testeDao.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/teste/testeExemplo.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/trabalho02.iml" beforeDir="false" afterPath="$PROJECT_DIR$/trabalho02.iml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -102,7 +114,7 @@
     </dirStrings>
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
@@ -171,17 +183,23 @@
     <property name="Repository.Attach.Annotations" value="false" />
     <property name="Repository.Attach.JavaDocs" value="false" />
     <property name="Repository.Attach.Sources" value="false" />
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
     <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1542838462561" />
     <property name="database.console.LAST_STATE" value="false" />
-    <property name="last_opened_file_path" value="D:/Downloads/postgresql-42.2.20.jre7.jar" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/lib/objenesis-1.2.jar" />
     <property name="project.structure.last.edited" value="Libraries" />
     <property name="project.structure.proportion" value="0.15" />
     <property name="project.structure.side.proportion" value="0.2" />
     <property name="settings.editor.selected.configurable" value="project.propVCSSupport.Mappings" />
   </component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\ferna\Desktop\Lab de POO\learning-java\paradigmas\trabalho02\src\utils" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Arquivos\Java\dev\Antigo\trabalho02\src" />
     </key>
@@ -189,7 +207,7 @@
       <recent name="utils" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.Metadata">
+  <component name="RunManager" selected="Application.livrosExemplo">
     <configuration name="Main" type="Application" factoryName="Application" temporary="true">
       <option name="MAIN_CLASS_NAME" value="Main" />
       <module name="trabalho02" />
@@ -207,13 +225,69 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="livrosExemplo" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="livros.livrosExemplo" />
+      <module name="trabalho02" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="livros.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="testeExemplo" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="teste.testeExemplo" />
+      <module name="trabalho02" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="teste.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="usuarioExemplo" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="usuario.usuarioExemplo" />
+      <module name="trabalho02" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="usuario.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="ArquillianJUnit" factoryName="" nameIsGenerated="true">
+      <option name="arquillianRunConfiguration">
+        <value>
+          <option name="containerStateName" value="" />
+        </value>
+      </option>
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <list>
       <item itemvalue="Application.Main" />
       <item itemvalue="Application.Metadata" />
+      <item itemvalue="Application.testeExemplo" />
+      <item itemvalue="Application.livrosExemplo" />
+      <item itemvalue="Application.usuarioExemplo" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.livrosExemplo" />
+        <item itemvalue="Application.usuarioExemplo" />
         <item itemvalue="Application.Metadata" />
+        <item itemvalue="Application.testeExemplo" />
         <item itemvalue="Application.Main" />
       </list>
     </recent_temporary>
@@ -239,6 +313,8 @@
       <workItem from="1543365417501" duration="2564000" />
       <workItem from="1622164256442" duration="4130000" />
       <workItem from="1622323569539" duration="6031000" />
+      <workItem from="1623610884715" duration="10104000" />
+      <workItem from="1624412575457" duration="339000" />
     </task>
     <servers />
   </component>
@@ -282,6 +358,18 @@
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$APPLICATION_CONFIG_DIR$/consoles/db/b73b031f-59a5-45dc-8071-07f8b3782b47/console.sql">

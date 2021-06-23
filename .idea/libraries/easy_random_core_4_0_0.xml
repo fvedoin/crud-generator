@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="postgresql-42.2.20.jre7">
+  <library name="easy-random-core-4.0.0">
     <CLASSES>
-      <root url="jar://D:/Downloads/postgresql-42.2.20.jre7.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/easy-random-core-4.0.0.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
